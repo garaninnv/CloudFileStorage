@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка файлов в MinIO</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Загрузка файлов в MinIO</h1>
+
+    <!-- Форма для загрузки файла -->
+    <form th:action="@{/files/upload}" method="post" enctype="multipart/form-data" class="mt-4">
+        <div class="form-group">
+            <label for="file">Выберите файл для загрузки:</label>
+            <input type="file" name="file" id="file" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Загрузить файл</button>
+    </form>
+
+    <!-- Таблица для отображения списка файлов -->
+    <h2 class="mt-5">Список файлов</h2>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+            <li th:each="breadcrumb : ${breadcrumbs}" class="breadcrumb-item">
+                <a th:href="${breadcrumb.url}" th:text="${breadcrumb.label}"></a>
+            </li>
+        </ol>
+    </nav>
+    <table class="table table-striped mt-3">
+        <thead>
+        <tr>
+            <th scope="col">Имя файла</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="file : ${files}">
+            <td>
+<!--------------------------------Отображение папки----------------------------------->
+            <span th:if="${file.getIsFolder()}">
+                <a th:href="@{/(path=${file.getPath()})}" th:text="${file.getName()}"></a></span>
+<!--------------------------------Отображение файла----------------------------------->
+                <span th:if="${file.getIsFolder() == false}" th:text="${file.getName()}">
+                </span></td>
+<!-----------------------------Переименование объекта-------------------------------------------------->
+            <td><a th:href="@{/files/update/{nameFile}(nameFile=${file.getName()})}">Переименовать</a></td>
+<!-----------------------------Удаление объекта-------------------------------------------------->
+            <td><a th:href="'/files/delete/'+${file.getName()}">Удалить</a></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Создание новой папки</h2>
+    <form th:action="@{/newfolder}" method="post" enctype="multipart/form-data" class="mt-4">
+        <div class="form-group">
+
+            <input type="text" name="newFolder" id="newFolder" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Создать папку</button>
+    </form>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

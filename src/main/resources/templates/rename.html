@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Переименование файлов в MinIO</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+  <h1 class="mt-5">Переименование файла / папки в MinIO</h1>
+
+  <form th:action="@{/files/update}" method="post" enctype="multipart/form-data" class="mt-4">
+    <div class="form-group">
+      <input type="hidden" th:value="${nameFile}" name="nameFile" id="nameFile" class="form-control" required>
+      <input type="text" th:value="${nameFile}" name="newNameFile" id="newNameFile" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Переименовать</button>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
