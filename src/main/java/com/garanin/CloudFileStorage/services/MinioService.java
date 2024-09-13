@@ -26,24 +26,27 @@ public class MinioService {
     @Value("${minio.bucketName}")
     private String myBucket;
 
-    public List<FileFolder> listFiles(String bucketName, Long userId) {
+    public List<FileFolder> listFiles(String path, Long userId) {
         List<FileFolder> fileFolderList = new ArrayList<>();
         try {
             // Получение списка объектов
             Iterable<Result<Item>> results = minioClient.listObjects(
                     ListObjectsArgs.builder()
-                            .bucket(bucketName)
-                            .prefix("user-1/")
+                            .bucket(myBucket)
+                            .prefix(getUserBucket(userId, path))
                             .build());
 
             // Итерация по результатам
             for (Result<Item> result : results) {
-                Item item = result.get(); // Получение элемента s.substring(0, s.length() - 1)
-                fileFolderList.
-                        add(new FileFolder(item.objectName().endsWith("/") ? item.objectName().substring(0, item.objectName().length() - 1) : item.objectName(),
-                                item.objectName(), (item.objectName().endsWith("/")))); // Добавление имени объекта в список
+                Item item = result.get(); // Получение элемента
+                if (!item.objectName().equals(path)){  // Проверка исключает повторное использование для вывода текущей папки
+                    fileFolderList
+                            .add(new FileFolder(
+                                    item.objectName().endsWith("/") ? pathToNameFile(item.objectName().substring(0, item.objectName().length() - 1)) : pathToNameFile(item.objectName()),
+                                    item.objectName(),
+                                    (item.objectName().endsWith("/"))));
+                }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,12 +115,12 @@ public class MinioService {
         }
     }
 
-    public void createFolder(String newFolder) {
+    public void createFolder(String path, String newFolder) {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(myBucket)
-                            .object(newFolder + "/")
+                            .object(path + newFolder + "/")
                             .stream(new ByteArrayInputStream(new byte[0]), 0, -1)
                             .build()
             );
@@ -142,7 +145,7 @@ public class MinioService {
         }
     }
 
-    public void uploadFile(MultipartFile file, String objectName) {
+    public void uploadFile(MultipartFile file,String path, String objectName) {
         try {
             boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(myBucket).build());
             if (!bucketExists) {
@@ -151,7 +154,7 @@ public class MinioService {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(myBucket)
-                            .object(objectName)
+                            .object(path + objectName)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .build()
             );
@@ -166,8 +169,17 @@ public class MinioService {
         }
     }
 
-    private String getUserBucket (Long userId) {
+    private String getUserBucket(Long userId, String path) {
         // формируем корневой путь для юзера
-        return "user-" + userId + "-files";
+        if (path.equals("/")) {
+            return "user-" + userId + "-files/";
+        } else {
+            return path;
+        }
+    }
+
+    private String pathToNameFile(String path) {
+
+        return path.substring(path.lastIndexOf("/") + 1);
     }
 }

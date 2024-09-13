@@ -21,14 +21,18 @@
 
     <!-- Таблица для отображения списка файлов -->
     <h2 class="mt-5">Список файлов</h2>
+
+<!-----------------------  Хлебные крошки ---------------------------  -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
             <li th:each="breadcrumb : ${breadcrumbs}" class="breadcrumb-item">
-                <a th:href="${breadcrumb.url}" th:text="${breadcrumb.label}"></a>
+                <a th:href="@{/(path=${breadcrumb.url})}" th:text="${breadcrumb.label}"></a>
             </li>
         </ol>
     </nav>
+
+
     <table class="table table-striped mt-3">
         <thead>
         <tr>

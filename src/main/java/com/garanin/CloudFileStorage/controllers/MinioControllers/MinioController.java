@@ -11,10 +11,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 
 @Controller
-@RequestMapping("/")
 public class MinioController {
 
     @Autowired
@@ -30,43 +32,37 @@ public class MinioController {
 
     //Загрузка файлов
     @PostMapping("/files/upload")
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public String uploadFile(@RequestParam("file") MultipartFile file, @RequestHeader(value = "Referer", required = false) String referer) throws UnsupportedEncodingException {
+
+        String path = URLDecoder.decode(referer.substring(referer.lastIndexOf("path=") + 5), "UTF-8");
         String objectName = file.getOriginalFilename(); // Имя файла в MinIO
-        minioService.uploadFile(file, objectName);
-        return "redirect:/";
+        minioService.uploadFile(file,path, objectName);
+        return "redirect:" + referer;
     }
 
-    //Начальная страница
-    @GetMapping()
-    public String getFiles(Model model
-//            , UserDetails details
+    //Начальная страница и переходы между папками
+    @GetMapping("/")
+    public String getFiles(@RequestParam(required = false, defaultValue = "/") String path, Model model
+//                           ,UserDetails details
     ) {
         Long userId = 1L;
-        //удалить myBucket из контроллера
-        List<FileFolder> files = minioService.listFiles(myBucket, userId);
+        List<FileFolder> files = minioService.listFiles(path, userId);
         model.addAttribute("files", files);
 
-        String currentPath = "/user-1/"; // Текущий путь
-        model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
-        return "allfiles";
-    }
-
-    //Для перехода в папку. Нужна доработка
-    @GetMapping("/{path}")
-    public String getFiles(@PathVariable("path") String path, Model model) {
-        Long userId = 1L;
-        List<FileFolder> files = minioService.listFiles(myBucket, userId);
-        model.addAttribute("files", files);
-
-        String currentPath = "/"; // Текущий путь
-        model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
+        model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(path));
         return "allfiles";
     }
 
     @PostMapping("/newfolder")
-    public String newFolder(@RequestParam String newFolder) {
-        minioService.createFolder(newFolder);
-        return "redirect:/";
+    public String newFolder(@RequestParam String newFolder, @RequestHeader(value = "Referer", required = false) String referer) {
+        try {
+            String path = URLDecoder.decode(referer.substring(referer.lastIndexOf("path=") + 5), "UTF-8");
+            minioService.createFolder(path, newFolder);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return "redirect:" + referer;
     }
 
     //Переименование файла
