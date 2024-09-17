@@ -1,10 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск файлов в MinIO</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-$END$
+<div class="container">
+    <h1 class="mt-5">Поиск файла / папки в MinIO</h1>
+
+    <h2 class="mt-5">Список найденных файлов</h2>
+
+    <table class="table table-striped mt-3">
+        <thead>
+        <tr>
+            <th scope="col">Имя файла</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="el : ${listLink}">
+            <td>
+                <a th:href="@{/(path=${el.getPath()})}" th:text="${el.getName()}"></a>
+            </td>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

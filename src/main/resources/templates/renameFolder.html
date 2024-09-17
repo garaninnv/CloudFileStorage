@@ -10,11 +10,11 @@
 <div class="container">
   <h1 class="mt-5">Переименование файла / папки в MinIO</h1>
 
-  <form th:action="@{/files/update}" method="post" enctype="multipart/form-data" class="mt-4">
+  <form th:action="@{/folders/update}" method="post" enctype="multipart/form-data" class="mt-4">
     <div class="form-group">
-      <input type="hidden" th:value="${oldNameFile}" name="oldNameFile" id="oldNameFile" class="form-control" required>
-      <input type="hidden" th:value="${pathToFile}" name="pathToFile" id="pathToFile" class="form-control" required>
-      <input type="text" th:value="${nameFile}" name="newNameFile" id="newNameFile" class="form-control" required>
+      <input type="hidden" th:value="${oldFolderName}" name="oldFolderName" id="oldFolderName" class="form-control" required>
+      <input type="hidden" th:value="${pathToFolder}" name="pathToFolder" id="pathToFolder" class="form-control" required>
+      <input type="text" th:value="${oldFolderName}" name="newFolderName" id="newFolderName" class="form-control" required>
     </div>
     <button type="submit" class="btn btn-primary">Переименовать</button>
   </form>

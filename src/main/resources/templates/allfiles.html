@@ -22,7 +22,7 @@
     <!-- Таблица для отображения списка файлов -->
     <h2 class="mt-5">Список файлов</h2>
 
-<!-----------------------  Хлебные крошки ---------------------------  -->
+    <!-----------------------  Хлебные крошки ---------------------------  -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
@@ -42,16 +42,30 @@
         <tbody>
         <tr th:each="file : ${files}">
             <td>
-<!--------------------------------Отображение папки----------------------------------->
+                <!--------------------------------Отображение папки----------------------------------->
             <span th:if="${file.getIsFolder()}">
-                <a th:href="@{/(path=${file.getPath()})}" th:text="${file.getName()}"></a></span>
-<!--------------------------------Отображение файла----------------------------------->
-                <span th:if="${file.getIsFolder() == false}" th:text="${file.getName()}">
-                </span></td>
-<!-----------------------------Переименование объекта-------------------------------------------------->
-            <td><a th:href="@{/files/update/{nameFile}(nameFile=${file.getName()})}">Переименовать</a></td>
-<!-----------------------------Удаление объекта-------------------------------------------------->
-            <td><a th:href="'/files/delete/'+${file.getName()}">Удалить</a></td>
+                <a th:href="@{/(path=${file.getPath()})}" th:text="${file.getName()}"></a>
+            </span>
+                <!--------------------------------Отображение файла----------------------------------->
+            <span th:if="${file.getIsFolder() == false}" th:text="${file.getName()}">
+            </span></td>
+            <!-----------------------------Переименование объекта-------------------------------------------------->
+            <td>
+                <span th:if="${file.getIsFolder()}">
+                    <a th:href="@{/folders/update/{nameFile}(nameFile=${file.getName()})}">Переименовать</a>
+                </span>
+                <span th:if="${file.getIsFolder() == false}">
+                    <a th:href="@{/files/update/{nameFile}(nameFile=${file.getName()})}">Переименовать</a>
+                </span>
+            </td>
+            <!-----------------------------Удаление объекта-------------------------------------------------->
+            <td>
+                <form id="deleteForm" th:action="@{/files/delete/{nameFile}(nameFile=${file.getName()})}" method="post">
+                    <input type="hidden" name="_method" value="DELETE"/>
+                    <input type="hidden" name="isFolder" th:value="${file.getIsFolder()}"/>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>
@@ -63,6 +77,16 @@
             <input type="text" name="newFolder" id="newFolder" class="form-control" required>
         </div>
         <button type="submit" class="btn btn-primary">Создать папку</button>
+    </form>
+
+<!-------------------------- Форма поиска   ------------------------->
+    <h2>Поиск папок и файлов</h2>
+    <form th:action="@{/search/}" method="get" enctype="multipart/form-data" class="mt-4">
+        <div class="form-group">
+
+            <input type="text" name="query" id="query" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Найти</button>
     </form>
 
 </div>
