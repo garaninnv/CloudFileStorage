@@ -1,6 +1,5 @@
 package com.garanin.CloudFileStorage.services;
 
-import com.garanin.CloudFileStorage.dto.Breadcrumb;
 import com.garanin.CloudFileStorage.dto.FileFolder;
 import io.minio.*;
 import io.minio.errors.*;
@@ -12,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -20,9 +20,12 @@ import java.util.List;
 @Service
 public class MinioService {
 
-    //Описываем методы работающие с путями к файлам и папкам
+    private final MinioClient minioClient;
+
     @Autowired
-    private MinioClient minioClient;
+    public MinioService(MinioClient minioClient) {
+        this.minioClient = minioClient;
+    }
 
     @Value("${minio.bucketName}")
     private String myBucket;
@@ -44,7 +47,6 @@ public class MinioService {
                     fileFolderList
                             .add(new FileFolder(
                                     item.objectName().endsWith("/") ? pathToNameFile(item.objectName().substring(0, item.objectName().length() - 1)) : pathToNameFile(item.objectName()),
-                                    //item.objectName().endsWith("/") ? item.objectName().substring(0, item.objectName().length() - 1) : pathToNameFile(item.objectName()),
                                     item.objectName(),
                                     (item.objectName().endsWith("/"))));
                 }
@@ -302,7 +304,18 @@ public class MinioService {
     }
 
     private String convertLebal(String s) {
-        String [] ar =   s.split("/");
-        return ar[ar.length-1];
+        String[] ar = s.split("/");
+        return ar[ar.length - 1];
+    }
+
+    public InputStream downloadFile(String objectName) {
+        try {
+            return minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(myBucket)
+                    .object(objectName)
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException("Error downloading file", e);
+        }
     }
 }

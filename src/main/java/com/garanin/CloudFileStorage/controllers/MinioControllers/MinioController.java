@@ -7,13 +7,19 @@ import com.garanin.CloudFileStorage.services.MinioService;
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -132,6 +138,24 @@ public class MinioController {
         listLink = minioService.search(query, userId);
         model.addAttribute("listLink", listLink);
         return "search";
+    }
+
+    @GetMapping("/download/")
+    public ResponseEntity<InputStreamResource> downloadFile(
+            @RequestParam String objectName) throws UnsupportedEncodingException {
+        InputStream inputStream = null;
+        try {
+            inputStream = minioService.downloadFile(URLDecoder.decode(objectName, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        InputStreamResource resource = new InputStreamResource(inputStream);
+        String decodedObjectName = URLDecoder.decode(objectName, StandardCharsets.UTF_8.name());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
+                        decodedObjectName + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 }
 

@@ -66,6 +66,12 @@
                     <button type="submit" class="btn btn-danger">Удалить</button>
                 </form>
             </td>
+            <td>
+                <form th:action="@{/download/}" method="get">
+                    <input type="hidden" name="objectName" th:value="${file.getPath()}"/>
+                    <button type="submit" class="btn btn-danger">Скачать</button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>
