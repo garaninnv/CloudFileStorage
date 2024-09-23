@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -30,15 +31,10 @@ import java.util.List;
 public class MinioController {
 
     @Autowired
-    private MinioClient minioClient;
-    @Autowired
     private MinioService minioService;
 
     @Autowired
     private BreadcrumbService breadcrumbService;
-
-    @Value("${minio.bucketName}")
-    private String myBucket;
 
     //Загрузка файлов
     @PostMapping("/files/upload")
@@ -54,7 +50,7 @@ public class MinioController {
     @GetMapping("/")
     public String getFiles(@RequestParam(required = false, defaultValue = "/") String path, Model model
 //                           ,UserDetails details
-    ) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    ) {
         Long userId = 1L;
         List<FileFolder> files = minioService.listFiles(path, userId);
         model.addAttribute("files", files);
@@ -139,7 +135,7 @@ public class MinioController {
     @GetMapping("/search/")
     public String search (@RequestParam("query") String query, Model model) {
         Long userId = 1l;
-        List<FileFolder> listLink = new ArrayList<>();
+        List<FileFolder> listLink;
         listLink = minioService.search(query, userId);
         model.addAttribute("listLink", listLink);
         return "search";
@@ -148,17 +144,13 @@ public class MinioController {
     @GetMapping("/download/")
     public ResponseEntity<InputStreamResource> downloadFile(
             @RequestParam String objectName) throws UnsupportedEncodingException {
-        InputStream inputStream = null;
-        try {
-            inputStream = minioService.downloadFile(URLDecoder.decode(objectName, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        InputStream inputStream = minioService.downloadFile(objectName);
+
         InputStreamResource resource = new InputStreamResource(inputStream);
-        String decodedObjectName = URLDecoder.decode(objectName, StandardCharsets.UTF_8.name());
+        String decodedObjectName = URLEncoder.encode(objectName, "UTF-8");
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
-                        decodedObjectName + "\"")
+                   decodedObjectName + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
     }
