@@ -1,10 +1,10 @@
 package com.garanin.CloudFileStorage.controllers.MinioControllers;
 
-import com.garanin.CloudFileStorage.dto.Breadcrumb;
 import com.garanin.CloudFileStorage.dto.FileFolder;
 import com.garanin.CloudFileStorage.services.BreadcrumbService;
 import com.garanin.CloudFileStorage.services.MinioService;
 import io.minio.MinioClient;
+import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -16,10 +16,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +42,7 @@ public class MinioController {
 
     //Загрузка файлов
     @PostMapping("/files/upload")
-    public String uploadFile(@RequestParam("file") MultipartFile file, @RequestHeader(value = "Referer", required = false) String referer) throws UnsupportedEncodingException {
+    public String uploadFile(@RequestParam("file") MultipartFile file, @RequestHeader(value = "Referer", required = false) String referer) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         Long userId = 1L;
         String path = URLDecoder.decode(referer, "UTF-8");
         String objectName = file.getOriginalFilename(); // Имя файла в MinIO
@@ -51,7 +54,7 @@ public class MinioController {
     @GetMapping("/")
     public String getFiles(@RequestParam(required = false, defaultValue = "/") String path, Model model
 //                           ,UserDetails details
-    ) {
+    ) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         Long userId = 1L;
         List<FileFolder> files = minioService.listFiles(path, userId);
         model.addAttribute("files", files);
@@ -63,12 +66,14 @@ public class MinioController {
     @PostMapping("/newfolder")
     public String newFolder(@RequestParam String newFolder, @RequestHeader(value = "Referer", required = false) String referer) {
         Long userId = 1L;
+
+        String path = null;
         try {
-            String path = URLDecoder.decode(referer, "UTF-8");
-            minioService.createFolder(path, newFolder, userId);
+            path = URLDecoder.decode(referer, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
+        minioService.createFolder(path, newFolder, userId);
 
         return "redirect:" + referer;
     }
@@ -79,7 +84,7 @@ public class MinioController {
                                  @RequestParam("oldNameFile") String oldNameFile,
                                  @RequestParam("pathToFile") String pathToFile) {
         Long userId = 1L;
-        minioService.copyFile(newNameFile, oldNameFile, pathToFile, userId);
+        minioService.copy(newNameFile, oldNameFile, pathToFile, userId);
         minioService.delete(oldNameFile, pathToFile, userId, false);
         return "redirect:" + pathToFile;
     }
