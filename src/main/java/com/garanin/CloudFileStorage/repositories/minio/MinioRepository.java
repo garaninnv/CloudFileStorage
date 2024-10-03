@@ -3,6 +3,7 @@ package com.garanin.CloudFileStorage.repositories.minio;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -16,14 +17,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 @Repository
+@RequiredArgsConstructor
 public class MinioRepository {
     //описываем все методы работающие с minio
-    @Autowired
-    private MinioClient minioClient;
+    //@Autowired
+    private final MinioClient minioClient;
 
-
-    @Value("${minio.bucketName}")
-    private String myBucket;
+    //@Value("${minio.bucketName}")
+    private final String myBucket;
 
     public Iterable<Result<Item>> getListFiles(String prefix) {
         Iterable<Result<Item>> results = new ArrayList<>();

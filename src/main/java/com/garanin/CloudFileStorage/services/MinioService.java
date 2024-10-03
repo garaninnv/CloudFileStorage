@@ -22,7 +22,7 @@ public class MinioService {
     private final MinioRepository minioRepository;
 
     @Autowired
-    public MinioService(MinioClient minioClient, MinioRepository minioRepository) {
+    public MinioService(MinioRepository minioRepository) {
         this.minioRepository = minioRepository;
     }
 
@@ -64,7 +64,7 @@ public class MinioService {
         return fileFolderList;
     }
 
-    public void delete(String nameFile, String pathToFile, Long userId, Boolean isFolder)  {
+    public void delete(String nameFile, String pathToFile, Long userId, Boolean isFolder) {
         if (isFolder) {
             minioRepository.removeFolder(convertPath(pathToFile, userId) + nameFile + "/");
         } else {
@@ -131,7 +131,7 @@ public class MinioService {
         minioRepository.upFile(convertPath(path, userId) + objectName, file);
     }
 
-    public List<FileFolder> search(String searchQuery, Long userId)  {
+    public List<FileFolder> search(String searchQuery, Long userId) {
         List<FileFolder> links = new ArrayList<>();
 
         Iterable<Result<Item>> results = minioRepository.doSearch("user-" + userId + "-files");

@@ -75,11 +75,11 @@
         </tr>
         </tbody>
     </table>
-
+    <!-------------------------- Создание новой папки   ------------------------->
     <h2>Создание новой папки</h2>
     <form th:action="@{/newfolder}" method="post" enctype="multipart/form-data" class="mt-4">
+        <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
         <div class="form-group">
-
             <input type="text" name="newFolder" id="newFolder" class="form-control" required>
         </div>
         <button type="submit" class="btn btn-primary">Создать папку</button>

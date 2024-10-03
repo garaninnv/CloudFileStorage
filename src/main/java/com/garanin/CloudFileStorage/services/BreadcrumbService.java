@@ -15,12 +15,6 @@ public class BreadcrumbService {
         String[] parts = currentPath.split("/");
         StringBuilder url = new StringBuilder();
 
-//        for (String part : parts) {
-//            if (!part.isEmpty()) {
-//                url.append("/").append(part);
-//                breadcrumbs.add(new Breadcrumb(part, url.toString()));
-//            }
-//        }
         url.append("user-" + userId + "-files/");
         for (int i = 1; i < parts.length; i++) {
             url.append(parts[i]).append("/");

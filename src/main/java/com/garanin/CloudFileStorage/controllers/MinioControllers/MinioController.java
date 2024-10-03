@@ -56,20 +56,22 @@ public class MinioController {
         model.addAttribute("files", files);
 
         model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(path));
+        model.addAttribute("currentPath", path);
         return "allfiles";
     }
 
     @PostMapping("/newfolder")
-    public String newFolder(@RequestParam String newFolder, @RequestHeader(value = "Referer", required = false) String referer) {
+    public String newFolder(@RequestParam String newFolder, @RequestHeader(value = "Referer", required = false) String referer,
+                            @RequestParam String currentPath) {
         Long userId = 1L;
 
-        String path = null;
+        String path1 = null;
         try {
-            path = URLDecoder.decode(referer, "UTF-8");
+            path1 = URLDecoder.decode(referer, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-        minioService.createFolder(path, newFolder, userId);
+        minioService.createFolder(path1, newFolder, userId);
 
         return "redirect:" + referer;
     }

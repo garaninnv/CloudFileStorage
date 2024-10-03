@@ -22,6 +22,11 @@ public class MinioConfig {
     @Value("${minio.bucketName}")
     private String minioBucketName;
 
+    @Bean (name = "myBucket")
+    public String getMinioBucketName() {
+        return minioBucketName;
+    }
+
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
