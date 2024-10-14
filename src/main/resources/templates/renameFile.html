@@ -12,8 +12,8 @@
 
   <form th:action="@{/files/update}" method="post" enctype="multipart/form-data" class="mt-4">
     <div class="form-group">
+      <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
       <input type="hidden" th:value="${oldNameFile}" name="oldNameFile" id="oldNameFile" class="form-control" required>
-      <input type="hidden" th:value="${pathToFile}" name="pathToFile" id="pathToFile" class="form-control" required>
       <input type="text" th:value="${nameFile}" name="newNameFile" id="newNameFile" class="form-control" required>
     </div>
     <button type="submit" class="btn btn-primary">Переименовать</button>

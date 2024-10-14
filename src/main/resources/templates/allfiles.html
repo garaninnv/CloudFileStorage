@@ -12,6 +12,7 @@
 
     <!-- Форма для загрузки файла -->
     <form th:action="@{/files/upload}" method="post" enctype="multipart/form-data" class="mt-4">
+        <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
         <div class="form-group">
             <label for="file">Выберите файл для загрузки:</label>
             <input type="file" name="file" id="file" class="form-control" required>
@@ -43,25 +44,34 @@
         <tr th:each="file : ${files}">
             <td>
                 <!--------------------------------Отображение папки----------------------------------->
-            <span th:if="${file.getIsFolder()}">
+                <span th:if="${file.getIsFolder()}">
                 <a th:href="@{/(path=${file.getPath()})}" th:text="${file.getName()}"></a>
             </span>
                 <!--------------------------------Отображение файла----------------------------------->
-            <span th:if="${file.getIsFolder() == false}" th:text="${file.getName()}">
+                <span th:if="${file.getIsFolder() == false}" th:text="${file.getName()}">
             </span></td>
             <!-----------------------------Переименование объекта-------------------------------------------------->
             <td>
                 <span th:if="${file.getIsFolder()}">
-                    <a th:href="@{/folders/update/{nameFile}(nameFile=${file.getName()})}">Переименовать</a>
+                    <form id="renameFolderForm" th:action="@{/folders/update/{nameFile}(nameFile=${file.getName()})}" method="get">
+                        <input type="hidden" name="isFolder" th:value="${file.getIsFolder()}"/>
+                        <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
+                        <button type="submit" class="btn btn-danger">Переименовать</button>
+                    </form>
                 </span>
                 <span th:if="${file.getIsFolder() == false}">
-                    <a th:href="@{/files/update/{nameFile}(nameFile=${file.getName()})}">Переименовать</a>
+                    <form id="renameFileForm" th:action="@{/files/update/{nameFile}(nameFile=${file.getName()})}" method="get">
+                        <input type="hidden" name="isFolder" th:value="${file.getIsFolder()}"/>
+                        <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
+                        <button type="submit" class="btn btn-danger">Переименовать</button>
+                    </form>
                 </span>
             </td>
             <!-----------------------------Удаление объекта-------------------------------------------------->
             <td>
                 <form id="deleteForm" th:action="@{/files/delete/{nameFile}(nameFile=${file.getName()})}" method="post">
                     <input type="hidden" name="_method" value="DELETE"/>
+                    <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
                     <input type="hidden" name="isFolder" th:value="${file.getIsFolder()}"/>
                     <button type="submit" class="btn btn-danger">Удалить</button>
                 </form>
@@ -85,7 +95,7 @@
         <button type="submit" class="btn btn-primary">Создать папку</button>
     </form>
 
-<!-------------------------- Форма поиска   ------------------------->
+    <!-------------------------- Форма поиска   ------------------------->
     <h2>Поиск папок и файлов</h2>
     <form th:action="@{/search/}" method="get" enctype="multipart/form-data" class="mt-4">
         <div class="form-group">

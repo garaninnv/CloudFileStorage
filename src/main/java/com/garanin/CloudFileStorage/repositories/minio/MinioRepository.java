@@ -1,33 +1,26 @@
 package com.garanin.CloudFileStorage.repositories.minio;
 
 import io.minio.*;
-import io.minio.errors.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
 public class MinioRepository {
-    //описываем все методы работающие с minio
-    //@Autowired
     private final MinioClient minioClient;
 
-    //@Value("${minio.bucketName}")
     private final String myBucket;
 
-    public Iterable<Result<Item>> getListFiles(String prefix) {
+    public List<String> getListFiles(String prefix) {
         Iterable<Result<Item>> results = new ArrayList<>();
+        List<String> files = new ArrayList<>();
         try {
             // Получение списка объектов
             results = minioClient.listObjects(
@@ -38,10 +31,17 @@ public class MinioRepository {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return results;
+        for (Result<Item> result : results) {
+            try {
+                files.add(result.get().objectName());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return files;
     }
 
-    public void removeFolder (String prefix) {
+    public void removeFolder(String prefix) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(myBucket)
@@ -53,23 +53,7 @@ public class MinioRepository {
             Item item = null;
             try {
                 item = result.get();
-            } catch (ErrorResponseException e) {
-                throw new RuntimeException(e);
-            } catch (InsufficientDataException e) {
-                throw new RuntimeException(e);
-            } catch (InternalException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidKeyException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidResponseException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            } catch (ServerException e) {
-                throw new RuntimeException(e);
-            } catch (XmlParserException e) {
+            }  catch (Exception e) {
                 throw new RuntimeException(e);
             }
             String oldObjectName = item.objectName();
@@ -80,29 +64,13 @@ public class MinioRepository {
                         .bucket(myBucket)
                         .object(oldObjectName)
                         .build());
-            } catch (ErrorResponseException e) {
-                throw new RuntimeException(e);
-            } catch (InsufficientDataException e) {
-                throw new RuntimeException(e);
-            } catch (InternalException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidKeyException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidResponseException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            } catch (ServerException e) {
-                throw new RuntimeException(e);
-            } catch (XmlParserException e) {
+            }  catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    public void removeFile (String p) {
+    public void removeFile(String p) {
         try {
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
@@ -110,92 +78,27 @@ public class MinioRepository {
                             .object(p)
                             .build()
             );
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
+        }  catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void copyObject (String obj) {
-        CopySource copySource = CopySource.builder()
-                .bucket(myBucket)
-                .object(obj)
-                .build();
-        try {
-            minioClient.copyObject(
-                    CopyObjectArgs.builder()
-                            .bucket(myBucket)
-                            .object(obj)
-                            .source(copySource)
-                            .build());
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void  copyObjectNewName (String oldObjectName, String newObjectName) {
+    public void copyObjectNewName(String oldObjectName, String newObjectName) {
         try {
             minioClient.copyObject(CopyObjectArgs.builder()
-            .bucket(myBucket)
-            .object(newObjectName)
-            .source(CopySource.builder()
+                    .source(CopySource.builder()
+                            .bucket(myBucket)
+                            .object(oldObjectName)
+                            .build())
                     .bucket(myBucket)
-                    .object(oldObjectName)
-                    .build())
-            .build());
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
+                    .object(newObjectName)
+                    .build());
+        }  catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public  void newFolder (String obj) {
+    public void newFolder(String obj) {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -204,117 +107,62 @@ public class MinioRepository {
                             .stream(new ByteArrayInputStream(new byte[0]), 0, -1)
                             .build()
             );
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
+        }  catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Boolean bucketExists () {
+    public Boolean bucketExists() {
         try {
             return minioClient.bucketExists(BucketExistsArgs.builder().bucket(myBucket).build());
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
+        }  catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void makeBucket () {
+    public void makeBucket() {
         try {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(myBucket).build());
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
+        }  catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public  void  upFile (String p, MultipartFile file) {
+    public void upFile(String path, MultipartFile file) {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(myBucket)
-                            .object(p)
+                            .object(path)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .build()
             );
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
+        }  catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Iterable<Result<Item>> doSearch(String pr) {
+    public List<String> doSearch(String pr) {
+        List<String> list = new ArrayList<>();
 
-        return  minioClient.listObjects(
+        Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(myBucket)
                         .prefix(pr)
                         .recursive(true)
                         .build()
         );
+        for (Result<io.minio.messages.Item> result : results) {
+            try {
+                list.add(result.get().objectName());
+            }  catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return list;
     }
 
-    public InputStream download (String objectName) {
+    public InputStream download(String objectName) {
 
         try {
             return minioClient.getObject(GetObjectArgs.builder()
