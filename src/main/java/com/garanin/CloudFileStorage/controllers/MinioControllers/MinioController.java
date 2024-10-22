@@ -3,6 +3,8 @@ package com.garanin.CloudFileStorage.controllers.MinioControllers;
 import com.garanin.CloudFileStorage.dto.FileFolder;
 import com.garanin.CloudFileStorage.services.BreadcrumbService;
 import com.garanin.CloudFileStorage.services.MinioService;
+import com.garanin.CloudFileStorage.validator.form.FolderForm;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -10,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +32,9 @@ public class MinioController {
     @Autowired
     private BreadcrumbService breadcrumbService;
 
+    @Autowired
+    private FolderForm folderForm;
+
     //Загрузка файлов
     @PostMapping("/files/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
@@ -46,23 +52,34 @@ public class MinioController {
 
     //Начальная страница и переходы между папками
     @GetMapping("/")
-    public String getFiles(@RequestParam(required = false, defaultValue = "/") String path, Model model
-//                           ,UserDetails details
+    public String getFiles(@RequestParam(required = false, defaultValue = "/") String path,
+                           Model model
     ) {
         Long userId = 1L;
         List<FileFolder> files = minioService.listFiles(path, userId);
         model.addAttribute("files", files);
-
+        model.addAttribute("folderForm", new FolderForm());
         model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(path));
         model.addAttribute("currentPath", path);
         return "allfiles";
     }
 
     @PostMapping("/newfolder")
-    public String newFolder(@RequestParam String newFolder,
+    public String newFolder(@Valid @ModelAttribute("newNameFolder") FolderForm folderForm,
+                            BindingResult bindingResult,
+                            Model model,
                             @RequestParam String currentPath) {
         Long userId = 1L;
-        minioService.createFolder(currentPath, newFolder, userId);
+        if (bindingResult.hasErrors()) {
+            List<FileFolder> files = minioService.listFiles(currentPath, userId);
+            model.addAttribute("files", files);
+            model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
+            model.addAttribute("currentPath", currentPath);
+            model.addAttribute("nameFolder", folderForm.getNewNameFolder());
+            model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
+            return "allfiles";
+        }
+        minioService.createFolder(currentPath, folderForm.getNewNameFolder(), userId);
         try {
             return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {

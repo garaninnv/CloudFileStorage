@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Загрузка файлов в MinIO</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
 <div class="container">
@@ -85,12 +86,13 @@
         </tr>
         </tbody>
     </table>
-    <!-------------------------- Создание новой папки   ------------------------->
+    <!------------------------ Создание новой папки   ----------------------->
     <h2>Создание новой папки</h2>
     <form th:action="@{/newfolder}" method="post" enctype="multipart/form-data" class="mt-4">
-        <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
+        <input type="hidden" th:name="currentPath" th:value="${currentPath}">
         <div class="form-group">
-            <input type="text" name="newFolder" id="newFolder" class="form-control" required>
+            <input th:name="newNameFolder" id="newNameFolder" th:value="${nameFolder}" class="form-control" required>
+            <p th:text="${errorMessage}" class="error-message" th:if="${errorMessage}"></p>
         </div>
         <button type="submit" class="btn btn-primary">Создать папку</button>
     </form>
