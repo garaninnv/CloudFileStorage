@@ -36,16 +36,24 @@ public class MinioController {
     //Загрузка файлов
     @PostMapping("/files/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
+                             Model model,
                              @RequestParam String currentPath) {
         Long userId = 1L;
         String objectName = file.getOriginalFilename();
-
-        minioService.uploadFile(file, currentPath, objectName, userId);
-        try {
-            return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+        if(file.getSize()/1024/1024 < 100) {
+            minioService.uploadFile(file, currentPath, objectName, userId);
+            try {
+                return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
         }
+        List<FileFolder> files = minioService.listFiles(currentPath, userId);
+        model.addAttribute("files", files);
+        model.addAttribute("currentPath", currentPath);
+        model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
+        model.addAttribute("errorMessageMaxSize", "Размер файла превышает 100Мб");
+        return "allfiles";
     }
 
     //Начальная страница и переходы между папками

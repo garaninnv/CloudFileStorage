@@ -17,6 +17,7 @@
         <div class="form-group">
             <label for="file">Выберите файл для загрузки:</label>
             <input type="file" name="file" id="file" class="form-control" required>
+            <p th:text="${errorMessageMaxSize}" class="error-message" th:if="${errorMessageMaxSize}"></p>
         </div>
         <button type="submit" class="btn btn-primary">Загрузить файл</button>
     </form>
