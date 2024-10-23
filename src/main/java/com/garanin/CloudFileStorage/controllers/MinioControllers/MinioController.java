@@ -3,6 +3,7 @@ package com.garanin.CloudFileStorage.controllers.MinioControllers;
 import com.garanin.CloudFileStorage.dto.FileFolder;
 import com.garanin.CloudFileStorage.services.BreadcrumbService;
 import com.garanin.CloudFileStorage.services.MinioService;
+import com.garanin.CloudFileStorage.validator.form.FileForm;
 import com.garanin.CloudFileStorage.validator.form.FolderForm;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +32,6 @@ public class MinioController {
 
     @Autowired
     private BreadcrumbService breadcrumbService;
-
-    @Autowired
-    private FolderForm folderForm;
 
     //Загрузка файлов
     @PostMapping("/files/upload")
@@ -89,13 +87,24 @@ public class MinioController {
 
     //Переименование файла
     @PostMapping("/files/update")
-    public String updateNameFile(@RequestParam("newNameFile") String newNameFile,
+    public String updateNameFile(@Valid @ModelAttribute("newNameFile") FileForm fileForm,
+                                 BindingResult bindingResult,
+                                 Model model,
                                  @RequestParam("oldNameFile") String oldNameFile,
                                  @RequestParam("currentPath") String currentPath) {
-        Long userId = 1L;
-        minioService.copy(newNameFile, oldNameFile, currentPath, userId);
-        minioService.delete(oldNameFile, currentPath, userId, false);
-
+        if (!fileForm.getNewNameFile().equals(oldNameFile)){
+            Long userId = 1L;
+            if (bindingResult.hasErrors()) {
+                model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
+                model.addAttribute("currentPath", currentPath);
+                model.addAttribute("newNameFile", fileForm.getNewNameFile().toString());
+                model.addAttribute("oldNameFile", oldNameFile);
+                model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
+                return "renameFile";
+            }
+            minioService.copy(fileForm.getNewNameFile(), oldNameFile, currentPath, userId);
+            minioService.delete(oldNameFile, currentPath, userId, false);
+        }
         try {
             return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
@@ -104,11 +113,11 @@ public class MinioController {
     }
 
     //Открытие страницы переименования файла
-    @GetMapping("/files/update/{nameFile}")
-    public String renameFile(@PathVariable("nameFile") String oldNameFile,
+    @GetMapping("/files/update/{newNameFile}")
+    public String renameFile(@PathVariable("newNameFile") String newNameFile,
                              Model model,
                              @RequestParam String currentPath) {
-        model.addAttribute("oldNameFile", oldNameFile);
+        model.addAttribute("oldNameFile", newNameFile);
         model.addAttribute("currentPath", currentPath);
         return "renameFile";
     }

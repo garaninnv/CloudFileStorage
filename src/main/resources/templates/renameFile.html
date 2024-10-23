@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Переименование файлов в MinIO</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
 <div class="container">
@@ -14,7 +15,8 @@
     <div class="form-group">
       <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
       <input type="hidden" th:value="${oldNameFile}" name="oldNameFile" id="oldNameFile" class="form-control" required>
-      <input type="text" th:value="${nameFile}" name="newNameFile" id="newNameFile" class="form-control" required>
+      <input type="text" th:value="${newNameFile}" name="newNameFile" id="newNameFile" class="form-control" required>
+      <p th:text="${errorMessage}" class="error-message" th:if="${errorMessage}"></p>
     </div>
     <button type="submit" class="btn btn-primary">Переименовать</button>
   </form>

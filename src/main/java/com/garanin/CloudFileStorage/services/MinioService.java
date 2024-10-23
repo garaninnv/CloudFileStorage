@@ -45,13 +45,16 @@ public class MinioService {
 
     //-----------------переименование файла-------------------
     public void copy(String newNameFile, String nameFile, String pathToFile, Long userId) {
+        if (pathToFile.equals("/")) {
+            pathToFile = "user-" + userId + "-files/";
+        }
         minioRepository.copyObjectNewName(pathToFile + nameFile,
                 pathToFile + newNameFile);
     }
 
     // ---------------------------- Переименование папки--------------------------------------
     public void renameFolder(String pathToFolder, String oldFolderName, String newFolderName, Long userId) {
-       String oldPrefix = getUserBucket(userId, pathToFolder) + oldFolderName + "/";
+        String oldPrefix = getUserBucket(userId, pathToFolder) + oldFolderName + "/";
         String newPrefix = getUserBucket(userId, pathToFolder) + newFolderName + "/";
         List<String> listFolder = minioRepository.doSearch(oldPrefix);
         for (String result : listFolder) {
