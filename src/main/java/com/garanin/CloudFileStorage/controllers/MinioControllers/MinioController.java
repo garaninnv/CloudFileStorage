@@ -92,8 +92,8 @@ public class MinioController {
                                  Model model,
                                  @RequestParam("oldNameFile") String oldNameFile,
                                  @RequestParam("currentPath") String currentPath) {
-        if (!fileForm.getNewNameFile().equals(oldNameFile)){
-            Long userId = 1L;
+        Long userId = 1L;
+        if (!fileForm.getNewNameFile().equals(oldNameFile)) {
             if (bindingResult.hasErrors()) {
                 model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
                 model.addAttribute("currentPath", currentPath);
@@ -124,14 +124,28 @@ public class MinioController {
 
     //Переименование папки
     @PostMapping("/folders/update")
-    public String updateNameFolder(@RequestParam("newFolderName") String newNameFile,
-                                   @RequestParam("oldFolderName") String oldNameFile,
+    public String updateNameFolder(@Valid @ModelAttribute("newNameFolder") FolderForm folderForm,
+                                   BindingResult bindingResult,
+                                   Model model,
+                                   // @RequestParam("newFolderName") String newNameFile,
+                                   @RequestParam("oldFolderName") String oldFolderName,
                                    @RequestParam("currentPath") String currentPath) {
         Long userId = 1L;
-        try {
-            minioService.renameFolder(URLDecoder.decode(currentPath, "UTF-8"), oldNameFile, newNameFile, userId);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+        if (!folderForm.getNewNameFolder().equals(oldFolderName)) {
+            if (bindingResult.hasErrors()) {
+                model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
+                model.addAttribute("currentPath", currentPath);
+                model.addAttribute("newNameFolder", folderForm.getNewNameFolder().toString());
+                model.addAttribute("oldFolderName", oldFolderName);
+                model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
+                return "renameFolder";
+            }
+            try {
+                minioService.renameFolder(URLDecoder.decode(currentPath, "UTF-8"), oldFolderName, folderForm.getNewNameFolder(), userId);
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+
         }
         try {
             return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
@@ -146,6 +160,7 @@ public class MinioController {
                                Model model,
                                @RequestParam(required = false, defaultValue = "/") String currentPath) {
         model.addAttribute("oldFolderName", oldFolderName);
+        model.addAttribute("newNameFolder", oldFolderName);
         model.addAttribute("currentPath", currentPath);
         return "renameFolder";
     }
