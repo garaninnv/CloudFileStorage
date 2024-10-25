@@ -24,11 +24,11 @@ public class MinioService {
         List<FileFolder> fileFolderList = new ArrayList<>();
         List<String> results = minioRepository.getListFiles(getUserBucket(userId, path));
         for (String result : results) {
-            if (!result.equals(path)) {  // Проверка исключает повторное использование для вывода текущей папки
+            if (!result.equals(getUserBucket(userId, path))) {  // Проверка исключает повторное использование для вывода текущей папки
                 fileFolderList
                         .add(new FileFolder(
                                 result.endsWith("/") ? pathToNameFile(result.substring(0, result.length() - 1)) : pathToNameFile(result),
-                                result,
+                                result.substring(result.indexOf("/") + 1),
                                 (result.endsWith("/"))));
             }
         }
@@ -45,11 +45,8 @@ public class MinioService {
 
     //-----------------переименование файла-------------------
     public void copy(String newNameFile, String nameFile, String pathToFile, Long userId) {
-        if (pathToFile.equals("/")) {
-            pathToFile = "user-" + userId + "-files/";
-        }
-        minioRepository.copyObjectNewName(pathToFile + nameFile,
-                pathToFile + newNameFile);
+        minioRepository.copyObjectNewName(getUserBucket(userId, pathToFile) + nameFile,
+                getUserBucket(userId, pathToFile) + newNameFile);
     }
 
     // ---------------------------- Переименование папки--------------------------------------
@@ -87,14 +84,24 @@ public class MinioService {
 
         for (String result : list) {
             links.add(new FileFolder(convertLebal(result),
-                    pathDoFile(result),
+                    getPath(result),
                     result.endsWith("/")));
         }
         return links.stream().filter(el -> el.getName().contains(searchQuery)).toList();
     }
 
-    public InputStream downloadFile(String objectName) {
-        return minioRepository.download(objectName);
+    public InputStream downloadFile(String objectName, Long userId) {
+        return minioRepository.download("user-" + userId + "-files/" + objectName);
+    }
+
+    private String getPath(String path) {
+        int index = path.indexOf("/");
+        int end = path.lastIndexOf("/");
+        path = path.substring(index, end + 1);
+        if (path.length() > 1) {
+            return path.substring(1, path.length());
+        }
+        return path;
     }
 
     private String getUserBucket(Long userId, String path) {
@@ -102,20 +109,13 @@ public class MinioService {
         if (path.equals("/")) {
             return "user-" + userId + "-files/";
         } else {
-            return path;
+            return "user-" + userId + "-files/" + path;
         }
     }
 
     private String pathToNameFile(String path) {
 
         return path.substring(path.lastIndexOf("/") + 1);
-    }
-
-    private String pathDoFile(String s) {
-        if (s.endsWith("/")) {
-            return s;
-        }
-        return s.substring(0, s.lastIndexOf("/")) + "/";
     }
 
     private String convertLebal(String s) {

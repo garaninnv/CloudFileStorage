@@ -135,7 +135,6 @@ public class MinioController {
     public String updateNameFolder(@Valid @ModelAttribute("newNameFolder") FolderForm folderForm,
                                    BindingResult bindingResult,
                                    Model model,
-                                   // @RequestParam("newFolderName") String newNameFile,
                                    @RequestParam("oldFolderName") String oldFolderName,
                                    @RequestParam("currentPath") String currentPath) {
         Long userId = 1L;
@@ -153,7 +152,6 @@ public class MinioController {
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
-
         }
         try {
             return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
@@ -199,7 +197,8 @@ public class MinioController {
     @GetMapping("/download/")
     public ResponseEntity<InputStreamResource> downloadFile(
             @RequestParam String objectName) throws UnsupportedEncodingException {
-        InputStream inputStream = minioService.downloadFile(objectName);
+        Long userId = 1l;
+        InputStream inputStream = minioService.downloadFile(objectName, userId);
         String[] ar = objectName.split("/");
         String nameFile = ar[ar.length - 1];
         InputStreamResource resource = new InputStreamResource(inputStream);
@@ -211,5 +210,3 @@ public class MinioController {
                 .body(resource);
     }
 }
-
-
