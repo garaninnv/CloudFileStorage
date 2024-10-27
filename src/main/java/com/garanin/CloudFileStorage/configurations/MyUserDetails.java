@@ -1,57 +1,59 @@
 package com.garanin.CloudFileStorage.configurations;
 
 import com.garanin.CloudFileStorage.model.MyUser;
-//import org.springframework.security.core.GrantedAuthority;
-//import org.springframework.security.core.authority.SimpleGrantedAuthority;
-//import org.springframework.security.core.userdetails.UserDetails;
+import lombok.Getter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
-public class MyUserDetails
-//        implements UserDetails
-{
-    private MyUser user;
+@Getter
+public class MyUserDetails implements UserDetails {
+    private final String password;
 
-    public MyUserDetails(MyUser user){
-        this.user = user;
+    private final String username;
+
+    private final Long userId;
+
+    public MyUserDetails(MyUser user) {
+        this.password = user.getPassword();
+        this.username = user.getUsername();
+        this.userId = user.getId();
     }
 
-//    @Override
-//    public Collection<? extends GrantedAuthority> getAuthorities() {
-//        return Arrays.stream(user.getRoles().split(", "))
-//                .map(SimpleGrantedAuthority::new)
-//                .collect(Collectors.toList());
-//    }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return new ArrayList<>();
+    }
 
-//    @Override
-//    public String getPassword() {
-//        return user.getPassword();
-//    }
+    @Override
+    public String getPassword() {
+        return password;
+    }
 
-//    @Override
-//    public String getUsername() {
-//        return user.getName();
-//    }
+    @Override
+    public String getUsername() {
+        return username;
+    }
 
-//    @Override
-//    public boolean isAccountNonExpired() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isAccountNonLocked() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isCredentialsNonExpired() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isEnabled() {
-//        return true;
-//    }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

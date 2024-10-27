@@ -1,6 +1,7 @@
 package com.garanin.CloudFileStorage.controllers.MinioControllers;
 
-import com.garanin.CloudFileStorage.dto.FileFolder;
+import com.garanin.CloudFileStorage.configurations.MyUserDetails;
+import com.garanin.CloudFileStorage.dto.FileFolderDTO;
 import com.garanin.CloudFileStorage.services.BreadcrumbService;
 import com.garanin.CloudFileStorage.services.MinioService;
 import com.garanin.CloudFileStorage.validator.form.FileForm;
@@ -11,6 +12,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -36,9 +38,11 @@ public class MinioController {
     //Загрузка файлов
     @PostMapping("/files/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
+                             @AuthenticationPrincipal MyUserDetails userDetails,
                              Model model,
                              @RequestParam String currentPath) {
-        Long userId = 1L;
+
+        Long userId = userDetails.getUserId();
         String objectName = file.getOriginalFilename();
         if(file.getSize()/1024/1024 < 100) {
             minioService.uploadFile(file, currentPath, objectName, userId);
@@ -48,7 +52,7 @@ public class MinioController {
                 throw new RuntimeException(e);
             }
         }
-        List<FileFolder> files = minioService.listFiles(currentPath, userId);
+        List<FileFolderDTO> files = minioService.listFiles(currentPath, userId);
         model.addAttribute("files", files);
         model.addAttribute("currentPath", currentPath);
         model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
@@ -59,10 +63,12 @@ public class MinioController {
     //Начальная страница и переходы между папками
     @GetMapping("/")
     public String getFiles(@RequestParam(required = false, defaultValue = "/") String path,
+                           @AuthenticationPrincipal MyUserDetails userDetails,
                            Model model
     ) {
-        Long userId = 1L;
-        List<FileFolder> files = minioService.listFiles(path, userId);
+        Long userId = userDetails.getUserId();
+        List<FileFolderDTO> files = minioService.listFiles(path, userId);
+        model.addAttribute("nameUser", userDetails.getUsername());
         model.addAttribute("files", files);
         model.addAttribute("folderForm", new FolderForm());
         model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(path));
@@ -73,11 +79,12 @@ public class MinioController {
     @PostMapping("/newfolder")
     public String newFolder(@Valid @ModelAttribute("newNameFolder") FolderForm folderForm,
                             BindingResult bindingResult,
+                            @AuthenticationPrincipal MyUserDetails userDetails,
                             Model model,
                             @RequestParam String currentPath) {
-        Long userId = 1L;
+        Long userId = userDetails.getUserId();
         if (bindingResult.hasErrors()) {
-            List<FileFolder> files = minioService.listFiles(currentPath, userId);
+            List<FileFolderDTO> files = minioService.listFiles(currentPath, userId);
             model.addAttribute("files", files);
             model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
             model.addAttribute("currentPath", currentPath);
@@ -97,10 +104,11 @@ public class MinioController {
     @PostMapping("/files/update")
     public String updateNameFile(@Valid @ModelAttribute("newNameFile") FileForm fileForm,
                                  BindingResult bindingResult,
+                                 @AuthenticationPrincipal MyUserDetails userDetails,
                                  Model model,
                                  @RequestParam("oldNameFile") String oldNameFile,
                                  @RequestParam("currentPath") String currentPath) {
-        Long userId = 1L;
+        Long userId = userDetails.getUserId();
         if (!fileForm.getNewNameFile().equals(oldNameFile)) {
             if (bindingResult.hasErrors()) {
                 model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
@@ -134,10 +142,11 @@ public class MinioController {
     @PostMapping("/folders/update")
     public String updateNameFolder(@Valid @ModelAttribute("newNameFolder") FolderForm folderForm,
                                    BindingResult bindingResult,
+                                   @AuthenticationPrincipal MyUserDetails userDetails,
                                    Model model,
                                    @RequestParam("oldFolderName") String oldFolderName,
                                    @RequestParam("currentPath") String currentPath) {
-        Long userId = 1L;
+        Long userId = userDetails.getUserId();
         if (!folderForm.getNewNameFolder().equals(oldFolderName)) {
             if (bindingResult.hasErrors()) {
                 model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
@@ -175,8 +184,9 @@ public class MinioController {
     @DeleteMapping("/files/delete/{nameFile}")
     public String deleteFile(@PathVariable("nameFile") String nameFile,
                              @RequestParam("isFolder") Boolean isFolder,
-                             @RequestParam String currentPath) {
-        Long userId = 1L;
+                             @RequestParam String currentPath,
+                             @AuthenticationPrincipal MyUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
         minioService.delete(nameFile, currentPath, userId, isFolder);
         try {
             return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
@@ -186,9 +196,10 @@ public class MinioController {
     }
 
     @GetMapping("/search/")
-    public String search(@RequestParam("query") String query, Model model) {
-        Long userId = 1l;
-        List<FileFolder> listLink;
+    public String search(@RequestParam("query") String query, Model model,
+                         @AuthenticationPrincipal MyUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
+        List<FileFolderDTO> listLink;
         listLink = minioService.search(query, userId);
         model.addAttribute("listLink", listLink);
         return "search";
@@ -196,8 +207,9 @@ public class MinioController {
 
     @GetMapping("/download/")
     public ResponseEntity<InputStreamResource> downloadFile(
-            @RequestParam String objectName) throws UnsupportedEncodingException {
-        Long userId = 1l;
+            @RequestParam String objectName,
+            @AuthenticationPrincipal MyUserDetails userDetails) throws UnsupportedEncodingException {
+        Long userId = userDetails.getUserId();
         InputStream inputStream = minioService.downloadFile(objectName, userId);
         String[] ar = objectName.split("/");
         String nameFile = ar[ar.length - 1];

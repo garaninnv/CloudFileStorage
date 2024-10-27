@@ -4,11 +4,11 @@ import lombok.Data;
 
 
 @Data
-public class Breadcrumb {
+public class BreadcrumbDTO {
     private String label;
     private String url;
 
-    public Breadcrumb(String label, String url) {
+    public BreadcrumbDTO(String label, String url) {
         this.label = label;
         this.url = url;
     }

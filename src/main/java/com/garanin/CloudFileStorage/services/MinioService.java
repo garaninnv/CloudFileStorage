@@ -1,6 +1,6 @@
 package com.garanin.CloudFileStorage.services;
 
-import com.garanin.CloudFileStorage.dto.FileFolder;
+import com.garanin.CloudFileStorage.dto.FileFolderDTO;
 import com.garanin.CloudFileStorage.repositories.minio.MinioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,13 +20,13 @@ public class MinioService {
         this.minioRepository = minioRepository;
     }
 
-    public List<FileFolder> listFiles(String path, Long userId) {
-        List<FileFolder> fileFolderList = new ArrayList<>();
+    public List<FileFolderDTO> listFiles(String path, Long userId) {
+        List<FileFolderDTO> fileFolderList = new ArrayList<>();
         List<String> results = minioRepository.getListFiles(getUserBucket(userId, path));
         for (String result : results) {
             if (!result.equals(getUserBucket(userId, path))) {  // Проверка исключает повторное использование для вывода текущей папки
                 fileFolderList
-                        .add(new FileFolder(
+                        .add(new FileFolderDTO(
                                 result.endsWith("/") ? pathToNameFile(result.substring(0, result.length() - 1)) : pathToNameFile(result),
                                 result.substring(result.indexOf("/") + 1),
                                 (result.endsWith("/"))));
@@ -78,12 +78,12 @@ public class MinioService {
         minioRepository.upFile(getUserBucket(userId, path) + objectName, file);
     }
 
-    public List<FileFolder> search(String searchQuery, Long userId) {
-        List<FileFolder> links = new ArrayList<>();
+    public List<FileFolderDTO> search(String searchQuery, Long userId) {
+        List<FileFolderDTO> links = new ArrayList<>();
         List<String> list = minioRepository.doSearch("user-" + userId + "-files");
 
         for (String result : list) {
-            links.add(new FileFolder(convertLebal(result),
+            links.add(new FileFolderDTO(convertLebal(result),
                     getPath(result),
                     result.endsWith("/")));
         }

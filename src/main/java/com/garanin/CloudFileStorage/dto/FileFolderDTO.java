@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class FileFolder {
+public class FileFolderDTO {
     private String name;
     private String path;
     private Boolean isFolder;
