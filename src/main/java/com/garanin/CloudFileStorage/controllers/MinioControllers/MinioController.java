@@ -19,6 +19,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -44,7 +46,7 @@ public class MinioController {
 
         Long userId = userDetails.getUserId();
         String objectName = file.getOriginalFilename();
-        if(file.getSize()/1024/1024 < 100) {
+        if (file.getSize() / 1024 / 1024 < 100) {
             minioService.uploadFile(file, currentPath, objectName, userId);
             try {
                 return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
@@ -57,6 +59,20 @@ public class MinioController {
         model.addAttribute("currentPath", currentPath);
         model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
         model.addAttribute("errorMessageMaxSize", "Размер файла превышает 100Мб");
+        return "allfiles";
+    }
+
+    @PostMapping("/folder/upload")
+    public String handleFileUpload(@RequestParam("folderfiles") MultipartFile[] folderfiles,
+                                   @AuthenticationPrincipal MyUserDetails userDetails,
+                                   Model model,
+                                   @RequestParam String currentPath) {
+        Long userId = userDetails.getUserId();
+        minioService.uploadFiles(folderfiles, currentPath, userId);
+        List<FileFolderDTO> files = minioService.listFiles(currentPath, userId);
+        model.addAttribute("files", files);
+        model.addAttribute("currentPath", currentPath);
+        model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
         return "allfiles";
     }
 
@@ -220,5 +236,24 @@ public class MinioController {
                         decodedObjectName + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
+    }
+
+    @GetMapping("/zipdownload/")
+    public ResponseEntity<byte[]> downloadFolder(
+            @RequestParam String objectName,
+            @AuthenticationPrincipal MyUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
+        String[] name = ("user-" + userId + "-files/" + objectName).split("/");
+        try {
+            byte[] zipData = minioService.downloadFiles(objectName, userId, name);
+            String decodedObjectName = URLEncoder.encode(name[name.length - 1], "UTF-8").replace("+", "%20");
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" +
+                            decodedObjectName + ".zip")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(zipData);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }

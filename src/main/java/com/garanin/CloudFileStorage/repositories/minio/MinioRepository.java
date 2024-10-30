@@ -41,6 +41,30 @@ public class MinioRepository {
         return files;
     }
 
+    public List<String> getRecursiveListFiles(String prefix) {
+        Iterable<Result<Item>> results = new ArrayList<>();
+        List<String> files = new ArrayList<>();
+        try {
+            // Получение списка объектов
+            results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(myBucket)
+                            .prefix(prefix)
+                            .recursive(true)
+                            .build());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        for (Result<Item> result : results) {
+            try {
+                files.add(result.get().objectName());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return files;
+    }
+
     public void removeFolder(String prefix) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
@@ -163,7 +187,6 @@ public class MinioRepository {
     }
 
     public InputStream download(String objectName) {
-
         try {
             return minioClient.getObject(GetObjectArgs.builder()
                     .bucket(myBucket)

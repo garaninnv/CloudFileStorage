@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Файловое хранилище</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
 </head>
 <body>
 <div class="container">
@@ -19,20 +19,23 @@
             <button type="submit">Выйти</button>
         </form>
     </div>
-    <!-- Форма для загрузки файла -->
+    <!-- Форма для загрузки файлов и папок -->
+    <h2 class="mt-5">Загрузка файлов</h2>
     <form th:action="@{/files/upload}" method="post" enctype="multipart/form-data" class="mt-4">
         <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
-        <div class="form-group">
-            <label for="file">Выберите файл для загрузки:</label>
-            <input type="file" name="file" id="file" class="form-control" required>
-            <p th:text="${errorMessageMaxSize}" class="error-message" th:if="${errorMessageMaxSize}"></p>
-        </div>
-        <button type="submit" class="btn btn-primary">Загрузить файл</button>
+        <input type="file" name="file" id="file" class="form-control" required>
+        <p th:text="${errorMessageMaxSize}" class="error-message" th:if="${errorMessageMaxSize}"></p>
+        <button type="submit" class="btn btn-primary">Загрузить</button>
     </form>
-
+    <h2 class="mt-5">Загрузка папок</h2>
+    <form th:action="@{/folder/upload}" method="post" enctype="multipart/form-data" class="mt-4">
+        <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
+        <input type="file" name="folderfiles" id="folderfiles" class="form-control" multiple webkitdirectory>
+        <p th:text="${errorMessageMaxSize}" class="error-message" th:if="${errorMessageMaxSize}"></p>
+        <button type="submit" class="btn btn-primary">Загрузить</button>
+    </form>
     <!-- Таблица для отображения списка файлов -->
     <h2 class="mt-5">Список файлов</h2>
-
     <!-----------------------  Хлебные крошки ---------------------------  -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -42,8 +45,6 @@
             </li>
         </ol>
     </nav>
-
-
     <table class="table table-striped mt-3">
         <thead>
         <tr>
@@ -63,14 +64,16 @@
             <!-----------------------------Переименование объекта-------------------------------------------------->
             <td>
                 <span th:if="${file.getIsFolder()}">
-                    <form id="renameFolderForm" th:action="@{/folders/update/{nameFile}(nameFile=${file.getName()})}" method="get">
+                    <form id="renameFolderForm" th:action="@{/folders/update/{nameFile}(nameFile=${file.getName()})}"
+                          method="get">
                         <input type="hidden" name="isFolder" th:value="${file.getIsFolder()}"/>
                         <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
                         <button type="submit" class="btn btn-danger">Переименовать</button>
                     </form>
                 </span>
                 <span th:if="${file.getIsFolder() == false}">
-                    <form id="renameFileForm" th:action="@{/files/update/{nameFile}(nameFile=${file.getName()})}" method="get">
+                    <form id="renameFileForm" th:action="@{/files/update/{nameFile}(nameFile=${file.getName()})}"
+                          method="get">
                         <input type="hidden" name="isFolder" th:value="${file.getIsFolder()}"/>
                         <input th:type="hidden" th:name="currentPath" th:value="${currentPath}">
                         <button type="submit" class="btn btn-danger">Переименовать</button>
@@ -86,11 +89,21 @@
                     <button type="submit" class="btn btn-danger">Удалить</button>
                 </form>
             </td>
+            <!----------------------Скачивание файлов и папок------------------------------------------->
             <td>
-                <form th:action="@{/download/}" method="get">
+                <span th:if="${file.getIsFolder()==false}">
+                    <form th:action="@{/download/}" method="get">
                     <input type="hidden" name="objectName" th:value="${file.getPath()}"/>
                     <button type="submit" class="btn btn-danger">Скачать</button>
-                </form>
+                    </form>
+                </span>
+                <span th:if="${file.getIsFolder()}">
+                    <form th:action="@{/zipdownload/}" method="get">
+                    <input type="hidden" name="objectName" th:value="${file.getPath()}"/>
+                    <button type="submit" class="btn btn-danger">Скачать</button>
+                    </form>
+                </span>
+
             </td>
         </tr>
         </tbody>

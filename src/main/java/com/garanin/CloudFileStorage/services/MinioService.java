@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 public class MinioService {
@@ -78,6 +81,17 @@ public class MinioService {
         minioRepository.upFile(getUserBucket(userId, path) + objectName, file);
     }
 
+    public void uploadFiles(MultipartFile[] folderfiles, String path, Long userId) {
+        boolean bucketExists = minioRepository.bucketExists();
+        if (!bucketExists) {
+            minioRepository.makeBucket();
+        }
+        for (MultipartFile file : folderfiles) {
+           String fileName = file.getOriginalFilename();
+            minioRepository.upFile(getUserBucket(userId, path) + fileName, file);
+        }
+    }
+
     public List<FileFolderDTO> search(String searchQuery, Long userId) {
         List<FileFolderDTO> links = new ArrayList<>();
         List<String> list = minioRepository.doSearch("user-" + userId + "-files");
@@ -92,6 +106,29 @@ public class MinioService {
 
     public InputStream downloadFile(String objectName, Long userId) {
         return minioRepository.download("user-" + userId + "-files/" + objectName);
+    }
+
+    public byte[] downloadFiles(String objectName, Long userId, String[] name) throws Exception{
+        List<String> list = minioRepository.getRecursiveListFiles("user-" + userId + "-files/" + objectName);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream zos = new ZipOutputStream(baos);
+
+        for (String element : list) {
+            try (InputStream fileStream = minioRepository.download(element)) {
+                int l = ("user-" + userId + "-files/" + objectName).length() - name[name.length - 1].length();
+                zos.putNextEntry(new ZipEntry(element.substring(l-1)));
+
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = fileStream.read(buffer)) > 0) {
+                    zos.write(buffer, 0, length);
+                }
+                zos.closeEntry();
+            }
+        }
+        zos.close();
+        return baos.toByteArray();
     }
 
     private String getPath(String path) {
