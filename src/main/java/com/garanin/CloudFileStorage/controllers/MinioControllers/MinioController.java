@@ -46,19 +46,11 @@ public class MinioController {
 
         Long userId = userDetails.getUserId();
         String objectName = file.getOriginalFilename();
-        if (file.getSize() / 1024 / 1024 < 100) {
-            minioService.uploadFile(file, currentPath, objectName, userId);
-            try {
-                return "redirect:/?path=" + URLEncoder.encode(currentPath, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        minioService.uploadFile(file, currentPath, objectName, userId);
         List<FileFolderDTO> files = minioService.listFiles(currentPath, userId);
         model.addAttribute("files", files);
         model.addAttribute("currentPath", currentPath);
         model.addAttribute("breadcrumbs", breadcrumbService.getBreadcrumbs(currentPath));
-        model.addAttribute("errorMessageMaxSize", "Размер файла превышает 100Мб");
         return "allfiles";
     }
 
