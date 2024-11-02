@@ -49,7 +49,7 @@ public class MinioController {
         if (file.getSize() / 1024 / 1024 < 100) {
             minioService.uploadFile(file, currentPath, objectName, userId);
             try {
-                return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
+                return "redirect:/?path=" + URLEncoder.encode(currentPath, "UTF-8");
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
@@ -110,7 +110,7 @@ public class MinioController {
         }
         minioService.createFolder(currentPath, folderForm.getNewNameFolder(), userId);
         try {
-            return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
+            return "redirect:/?path=" + URLEncoder.encode(currentPath, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -138,7 +138,7 @@ public class MinioController {
             minioService.delete(oldNameFile, currentPath, userId, false);
         }
         try {
-            return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
+            return "redirect:/?path=" + URLEncoder.encode(currentPath, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -179,7 +179,7 @@ public class MinioController {
             }
         }
         try {
-            return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
+            return "redirect:/?path=" + URLEncoder.encode(currentPath, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -205,7 +205,7 @@ public class MinioController {
         Long userId = userDetails.getUserId();
         minioService.delete(nameFile, currentPath, userId, isFolder);
         try {
-            return "redirect:/?path=" + URLEncoder.encode(currentPath, StandardCharsets.UTF_8.toString());
+            return "redirect:/?path=" + URLEncoder.encode(currentPath, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -218,6 +218,7 @@ public class MinioController {
         List<FileFolderDTO> listLink;
         listLink = minioService.search(query, userId);
         model.addAttribute("listLink", listLink);
+        model.addAttribute("nameUser", userDetails.getUsername());
         return "search";
     }
 

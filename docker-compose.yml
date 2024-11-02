@@ -1,35 +1,74 @@
-version: '3.1'
+version: '3.8'
+
 services:
   db:
-    image: mysql
-    container_name: 'db_mysql'
+    image: mysql:8.0
+    container_name: db_mysql
     environment:
       MYSQL_DATABASE: cloud
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: user
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
     ports:
       - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
   minio:
     image: quay.io/minio/minio
+    container_name: minio
     command: server /data --console-address ":9001"
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
-    ports:
-      - 9000:9000
-      - 9001:9001
+    networks:
+      - app-network
 
   redis:
     image: redis:latest
     container_name: my-redis
     ports:
       - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning --requirepass 1234
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    networks:
+      - app-network
+
+#  app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:mysql://db_mysql:3306/cloud
+#      SPRING_DATASOURCE_USERNAME: user
+#      SPRING_DATASOURCE_PASSWORD: user
+#      SPRING_REDIS_HOST: my-redis
+#      SPRING_REDIS_PORT: 6379
+#      MINIO_ENDPOINT: http://minio:9000
+#      MINIO_ACCESS_KEY: minioadmin
+#      MINIO_SECRET_KEY: minioadmin
+#    depends_on:
+#      - db
+#      - minio
+#      - redis
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - app-network
+#    restart: always
 
 volumes:
   mysql_data:
   minio_data:
   redis_data:
+
+networks:
+  app-network:

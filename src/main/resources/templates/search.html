@@ -9,7 +9,15 @@
 <body>
 <div class="container">
     <h1 class="mt-5">Поиск файла / папки в MinIO</h1>
-
+    <div style="text-align: right;">
+        <p class="user-display text-muted">
+            Пользователь: <span class="text-primary" th:text="${nameUser}"></span>
+        </p>
+        <form action="/logout" method="post" style="margin-top: 10px;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">Выйти</button>
+        </form>
+    </div>
     <h2 class="mt-5">Список найденных файлов</h2>
 
     <table class="table table-striped mt-3">

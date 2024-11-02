@@ -101,7 +101,7 @@ public class MinioService {
                     getPath(result),
                     result.endsWith("/")));
         }
-        return links.stream().filter(el -> el.getName().contains(searchQuery)).toList();
+        return links.stream().filter(el -> el.getName().toLowerCase().contains(searchQuery.toLowerCase())).toList();
     }
 
     public InputStream downloadFile(String objectName, Long userId) {
@@ -142,7 +142,6 @@ public class MinioService {
     }
 
     private String getUserBucket(Long userId, String path) {
-        // формируем корневой путь для юзера
         if (path.equals("/")) {
             return "user-" + userId + "-files/";
         } else {
